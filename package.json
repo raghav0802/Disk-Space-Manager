@@ -1,0 +1,21 @@
+{
+  "name": "disk-space-management",
+  "version": "1.0.0",
+  "description": "Disk Space Management Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "check-disk-space": "^3.4.0",
+    "drivelist": "^11.1.0",
+    "electron": "^14.2.9",
+    "electron-packager": "^17.1.1",
+    "electron-reload": "^2.0.0-alpha.1",
+    "rimraf": "^5.0.1"
+  }
+}

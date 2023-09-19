@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Space Utilization Breakdown</title>
+</head>
+
+<body>
+    <h1>Space Utilization Breakdown</h1>
+    <label for="drivePath">Enter Drive Path:</label>
+    <input type="text" id="drivePath" placeholder="C:/Users/HP/OneDrive/Desktop" />
+
+    <!-- Dropdown menu to select the option -->
+    <label for="options">Select an option:</label>
+    <select id="options" onchange="toggleFileTypeInput()">
+        <option value="space">Space Utilization</option>
+        <option value="duplicates">Duplicate Files</option>
+        <option value="identify">Identify Large Files</option>
+        <option value="scanning">Scan Specific type File</option>
+        <option value="delete">Delete Specific File</option>
+        <option value="deleteFileType">Delete Specific File Type</option>
+    </select>
+
+    <!-- Input field to enter the file type for the "Scan Specific type File" option -->
+    <div id="fileTypeInput" style="display: none;">
+        <label for="fileType">Enter File Type:</label>
+        <input type="text" id="fileType" placeholder="pdf" />
+    </div>
+
+    <button id="btnGetSpace">Get Information</button>
+    <div id="output"></div>
+
+    <script>
+        // Function to render the output in the GUI
+        function renderOutput(outputData) {
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerText = outputData;
+        }
+
+        // Function to send the disk path and selected option to the main process
+        function getSpaceBreakdown(drivePath, option, fileType) {
+            // Send the disk path, selected option, and file type to the main process
+            window.api.send('get-space-breakdown', drivePath, option, fileType);
+        }
+
+        // Function to show/hide the file type input field based on the selected option
+        function toggleFileTypeInput() {
+            const selectedOption = document.getElementById('options').value;
+            const fileTypeInput = document.getElementById('fileTypeInput');
+
+            if (selectedOption === 'scanning' || selectedOption === 'deleteFileType') {
+                fileTypeInput.style.display = 'block';
+            } else {
+                fileTypeInput.style.display = 'none';
+            }
+        }
+
+        // Listen for space-breakdown-data from the main process
+        window.api.receive('space-breakdown-data', (output) => {
+            renderOutput(output);
+        });
+
+        // Event listener for the "Get Information" button click
+        document.getElementById('btnGetSpace').addEventListener('click', () => {
+            let drivePath = document.getElementById('drivePath').value;
+            for (let i = 0; i < drivePath.length; i++) {
+                if (drivePath[i] === "\/") {
+                    drivePath = "/";
+                }
+            }
+            const option = document.getElementById('options').value;
+            let fileType = '';
+
+            if (option === 'scanning') {
+                fileType = document.getElementById('fileType').value.trim().toLowerCase();
+            }
+
+            // Pass the file type to the main process only for the "Scan Specific type File" option
+            if (option === 'scanning') {
+                // Check if the file type is provided, otherwise use 'pdf' as the default value
+                const fileTypeToSend = fileType !== '' ? fileType : 'pdf';
+                getSpaceBreakdown(drivePath, option, fileTypeToSend);
+            } 
+            else  if (option === 'deleteFileType') {
+                fileType = document.getElementById('fileType').value.trim().toLowerCase();
+                
+                if (fileType !== '') {
+                    getSpaceBreakdown(drivePath, option, fileType);
+                } else {
+                    renderOutput('Please enter a file type to delete.');
+                }
+            } 
+            else {
+                getSpaceBreakdown(drivePath, option, '');
+            }
+        });
+    </script>
+</body>
+
+</html>
